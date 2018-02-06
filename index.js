@@ -8,7 +8,9 @@ var stringRegex = /(['`"])((?:[^\\]\\\1|.)*?)\1/g;
 
 function replaceStringsWithRequires(string) {
   return string.replace(stringRegex, function (match, quote, url) {
-    if (url.charAt(0) !== ".") {
+    if(url.charAt(0) !== "." && config.baseRef){
+      url = config.baseRef + '/' + url;
+    } else if (url.charAt(0) !== "." && !config.keepNonRelative) {
       url = "./" + url;
     }
     return "require('" + url + "')";
