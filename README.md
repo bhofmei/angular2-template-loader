@@ -76,6 +76,68 @@ export class AwesomeButtonComponent { }
 export class AwesomeButtonComponent { }
 ```
 
+### Example - Angular2 Style Paths
+
+Angular2 prefers templateUrls/styleUrls to be relative to the root of the app module not the corresponding component. To make sure webpack can `require` the correctly, use the `baseRef ` parameter.
+
+This is the path from where the webpack file exists up to where the templateUrl starts.
+For example, if you have the directory structure
+```
+-webpack.config.js
+-src
+--main.ts
+--vendor.ts
+--polyfills.ts
+--app
+---app.component.ts
+---app.module.ts
+---feature1
+----feature1.component.ts
+----feature1.template.html
+----feature1.style.css
+```
+
+#### Webpack
+```
+...
+{
+  test: /\.ts$/,
+  loaders: [
+    'awesome-typescript-loader', 
+    {
+      loader: 'angular2-template-loader',
+      options: {
+        baseRef: 'src'
+      }
+    }
+  ],
+  exclude: [/\.(spec|e2e)\.ts$/]
+}
+...
+ ```
+
+#### Feature 1 Component BEFORE
+```js
+@Component({
+selector: 'feature1',
+templateUrl: 'app/feature1/feature1.template.html',
+styleUrls: ['app/feature1/feature1.style.css']
+})
+```
+
+#### Feature 1 Component AFTER
+```js
+@Component({
+selector: 'feature1',
+template: require('src/app/feature1/feature1.template.html')
+styles: [require('src/app/feature1/feature1.style.css')]
+})
+```
+
+The default option would look relative to the component-`src/app/feature1/app/feature1/feature1.template.html` does not exist. 
+Specifying `baseRef` as empty or using absolute paths would look for `app/feature1/feature1.template.html` which does not exist. 
+Using the correct `baseRef` path, webpack is able to find the correct file, `src/app/feature/feature1.template.html`.
+
 ### How does it work
 The `angular2-template-loader` searches for `templateUrl` and `styleUrls` declarations inside of the Angular 2 Component metadata and replaces the paths with the corresponding `require` statement.
 If `keepUrl=true` is added to the loader's query string, `templateUrl` and `styleUrls` will not be replaced by `template` and `style` respectively so you can use a loader like `file-loader`.
